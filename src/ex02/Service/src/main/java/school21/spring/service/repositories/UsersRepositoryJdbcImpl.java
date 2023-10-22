@@ -1,18 +1,19 @@
 package school21.spring.service.repositories;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import school21.spring.service.models.User;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class UsersRepositoryJdbcImpl implements UsersRepository {
 
+    @Autowired
+    @Qualifier("hikariBean")
     private final DataSource dataSource;
 
     public UsersRepositoryJdbcImpl(DataSource dataSource) {
@@ -66,10 +67,14 @@ public class UsersRepositoryJdbcImpl implements UsersRepository {
     @Override
     public void update(User entity) {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement("update users set email = ? where id = ?")) {
+             PreparedStatement statement = connection.prepareStatement("insert into users (email, password) values (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, entity.getEmail());
-            statement.setLong(2, entity.getId());
+            statement.setString(2, entity.getPassword());
             statement.execute();
+            ResultSet resultSet = statement.getGeneratedKeys();
+            if (resultSet.next()) {
+                entity.setId(resultSet.getLong(1));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

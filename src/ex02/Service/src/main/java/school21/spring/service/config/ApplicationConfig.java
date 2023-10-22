@@ -1,15 +1,19 @@
 package school21.spring.service.config;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import school21.spring.service.repositories.UsersRepositoryJdbcImpl;
-import school21.spring.service.repositories.UsersRepositoryJdbcTemplateImpl;
 
 
 @Configuration
+@PropertySource("classpath:db.properties")
+@ComponentScan(basePackages = "school21.spring.service")
 public class ApplicationConfig {
 
     @Value("${db.url}")
@@ -25,16 +29,19 @@ public class ApplicationConfig {
     private String dbDriver;
 
     @Bean
+    @Qualifier("hikariBean")
     public HikariDataSource hikariDataSource() {
-        HikariDataSource hikariDataSource = new HikariDataSource();
-        hikariDataSource.setJdbcUrl(dbUrl);
-        hikariDataSource.setUsername(dbUser);
-        hikariDataSource.setPassword(dbPassword);
-        hikariDataSource.setDriverClassName(dbDriver);
-        return hikariDataSource;
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(dbUrl);
+        config.setUsername(dbUser);
+        config.setPassword(dbPassword);
+        config.setDriverClassName(dbDriver);
+
+        return new HikariDataSource(config);
     }
 
     @Bean
+    @Qualifier("driverManagerBean")
     public DriverManagerDataSource driverManagerDataSource(){
         DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
         driverManagerDataSource.setUrl(dbUrl);
@@ -42,15 +49,5 @@ public class ApplicationConfig {
         driverManagerDataSource.setPassword(dbPassword);
         driverManagerDataSource.setDriverClassName(dbDriver);
         return driverManagerDataSource;
-    }
-
-    @Bean
-    public UsersRepositoryJdbcImpl usersRepositoryJdbc(){
-        return new UsersRepositoryJdbcImpl(hikariDataSource());
-    }
-
-    @Bean
-    public UsersRepositoryJdbcTemplateImpl usersRepositoryJdbcTemplate(){
-        return new UsersRepositoryJdbcTemplateImpl(driverManagerDataSource());
     }
 }
