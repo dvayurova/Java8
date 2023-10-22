@@ -20,19 +20,19 @@ public class UsersRepositoryJdbcImpl implements UsersRepository {
     }
 
     @Override
-    public Optional<User> findById(Long id) {
+    public User findById(Long id) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement("SELECT * FROM users WHERE id = ?")) {
             statement.setLong(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                Optional<User> user = Optional.of(new User(resultSet.getLong("id"), resultSet.getString("email")));
+                User user = new User(resultSet.getLong("id"), resultSet.getString("email"));
                 return user;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class UsersRepositoryJdbcImpl implements UsersRepository {
              PreparedStatement statement = connection.prepareStatement("SELECT * FROM users")) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                users.add(new User(resultSet.getLong("id"), resultSet.getString("email"));
+                users.add(new User(resultSet.getLong("id"), resultSet.getString("email")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
